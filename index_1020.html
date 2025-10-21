@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증상 검색</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 증상 기반 질환 검색</h1>
+        
+        <textarea id="symptomInput" placeholder="증상을 입력하세요 (예: 머리가 아프고 열이 나요)"></textarea>
+        
+        <button onclick="searchDisease()">검색</button>
+        
+        <div id="loading" class="loading">검색 중...</div>
+        <div id="error" class="error"></div>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        async function searchDisease() {
+            const input = document.getElementById('symptomInput').value.trim();
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            if (!input) {
+                alert('증상을 입력해주세요!');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/search`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: input, method: 'keyword', limit: 10})
+                });
+                
+                const data = await response.json();
+                
+                if (data.matches.length === 0) {
+                    results.innerHTML = '<p>일치하는 질환을 찾을 수 없습니다.</p>';
+                } else {
+                    results.innerHTML = data.matches.map((m, i) => `
+                        <div class="card">
+                            <h3>${i+1}. ${m.disease}</h3>
+                            <p>증상: ${m.symptoms.slice(0, 5).join(', ')}</p>
+                            ${m.reference ? `<small>참고: ${m.reference}</small>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                error.textContent = '오류: ' + err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증상 검색</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 증상 기반 질환 검색</h1>
+        
+        <textarea id="symptomInput" placeholder="증상을 입력하세요 (예: 머리가 아프고 열이 나요)"></textarea>
+        
+        <button onclick="searchDisease()">검색</button>
+        
+        <div id="loading" class="loading">검색 중...</div>
+        <div id="error" class="error"></div>
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        async function searchDisease() {
+            const input = document.getElementById('symptomInput').value.trim();
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            if (!input) {
+                alert('증상을 입력해주세요!');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            results.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/search`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: input, method: 'keyword', limit: 10})
+                });
+                
+                const data = await response.json();
+                
+                if (data.matches.length === 0) {
+                    results.innerHTML = '<p>일치하는 질환을 찾을 수 없습니다.</p>';
+                } else {
+                    results.innerHTML = data.matches.map((m, i) => `
+                        <div class="card">
+                            <h3>${i+1}. ${m.disease}</h3>
+                            <p>증상: ${m.symptoms.slice(0, 5).join(', ')}</p>
+                            ${m.reference ? `<small>참고: ${m.reference}</small>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                error.textContent = '오류: ' + err.message;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html> -->
